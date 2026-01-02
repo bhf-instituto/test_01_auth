@@ -1,14 +1,16 @@
 import { Router } from 'express';
-import { getAll, registerUser, loginUser, enterProtected } from '../controllers/user.controller.js'
-import authJWT from '../services/jwt.service.js';
+import { getAll, registerUser, loginUser, enterProtected, logoutUser } from '../controllers/user.controller.js'
+import refreshAccessToken from '../controllers/refreshAccessToken.controller.js';
 
 const router = Router();
 
 router.route('/getAll').get(getAll);
 
-// router.route('/register').post(registerUser);
 router.post('/register', registerUser)
 router.post('/login', loginUser);
+router.post('/logout', logoutUser);
+
+router.post('/refresh', refreshAccessToken)
 
 router.get('/protected', enterProtected)
 

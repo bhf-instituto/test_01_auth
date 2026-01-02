@@ -12,7 +12,7 @@
 
         <!-- Si el usuario no inicio sesión le mostramos login y registro -->
 
-        <% if (typeof username !=='undefined' ) { %>
+        <% if (typeof email !=='undefined' ) { %>
             <div class="form-container">
                 <h2>Hola <%= email %>!</h2>
                 <p> Estas en el panel de administración</p>
@@ -26,10 +26,10 @@
                             <h2>Login</h2>
 
                             <label for="login-email">Email</label>
-                            <input type="text" id="login-email" name="email" required>
+                            <input type="text" id="login-email" name="login-email" required>
 
                             <label for="login-password">Password</label>
-                            <input type="password" id="login-password" name="password" required>
+                            <input type="password" id="login-password" name="login-password" required>
 
                             <button type="submit">Login</button>
                             <span>&nbsp;</span>
@@ -76,8 +76,7 @@
             e.preventDefault();
 
             const email = $('#login-email').value;
-            const password = $('#login-password').value;
-        
+            const password = $('#login-password').value;        
 
         fetch('/user/login', {
             method: 'POST',
@@ -147,8 +146,7 @@
                 }
             })
                 .then(res => {
-                    console.log(res);
-                    window.location.hrer = '/';
+                    window.location.href = '/';
                 })
         })
 

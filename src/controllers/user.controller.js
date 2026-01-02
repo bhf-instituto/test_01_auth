@@ -1,8 +1,9 @@
 import bcrypt from 'bcryptjs'
 import dbConnection from '../config/connectionMySQL.js';
 import jwt from 'jsonwebtoken';
+import { render } from 'ejs';
 
-const saltRounds = Number (process.env.SALT_ROUNDS);
+const saltRounds = Number(process.env.SALT_ROUNDS);
 
 const getAll = async (req, res) => {
     try {
@@ -70,38 +71,70 @@ const loginUser = async (req, res) => {
         const normEmail = email.trim().toLowerCase();
 
         // acá traigo un array con objetos que van a tener las propiedades id y password_hash [{id: , pass:},{...}...]
-        const [results] = await dbConnection.query('SELECT id_user, password_hash FROM users WHERE email = ?', [normEmail])
+        const [results] = await dbConnection.query('SELECT email, password_hash FROM users WHERE email = ?', [normEmail])
 
         if (results.length === 0) return res.status(401).json({
             message: "Usuario no existe"
         })
 
+        if (results.length > 1) return res.status(401).json({
+            message: "Usuario repetido ← ← ←"
+        })
+
         //este user es el que traje de la base de datos
         const user = results[0];
 
+        // comparo lo que envia el usuario por la req con lo que recibo de la DB
         const validPassword = await bcrypt.compare(password, user.password_hash);
 
         if (!validPassword) return res.status(401).json({
             message: "Contraseña incorrecta."
         })
 
-        const token = jwt.sign(
-            {id: user.id_user, email: user.email},
+        // Acá se crea el JWT. 
+        const accessToken = jwt.sign(
+            { email: user.email },
             process.env.JWT_SECRET,
-            {expiresIn : '1h'}
-        );
+            { expiresIn: '1m' }
+        )
+
+        const refreshToken = jwt.sign(
+            { email: user.email },
+            process.env.JWT_REFRESH_SECRET,
+            { expiresIn: '7d' }
+        )
+
+        await dbConnection.query(
+            `INSERT INTO refresh_tokens (user_email, token, expires_at)
+            VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))`,
+            [user.email, refreshToken]
+        )
+
+        // const token = jwt.sign(
+        //     { email: user.email },
+        //     process.env.JWT_SECRET,
+        //     { expiresIn: '1h' }
+        // );
         // res.cookie( name, actual token, configs)
-        res.cookie('access_token', token, {
-            httpOnly: true, // la cookie solo se puede acceder en el servidor
-            secure: process.env.NODE_ENV === 'production', // la cooque solo se puede acceder en https
-            sameSite: 'strict', // solo se puede acceder desde el mismo dominio
-            maxAge: 1000 * 60 * 60 // la cookie tiene un tiempo de validez de 1 hs 
+        res
+            .cookie('access_token', accessToken, {
+                httpOnly: true, // la cookie solo se puede acceder en el servidor, osea no con js desde el navegador
+                secure: process.env.NODE_ENV === 'production', // la cookie solo se puede acceder en https
+                sameSite: 'strict', // solo se puede acceder desde el mismo dominio
+                maxAge: 1000 * 60 * 1 // tiempo de validez de la cookie
+            })
+            .cookie('refresh_token', refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 1000 * 60 * 60 * 24 * 7
+            })
+            .send({ 
+                message: "Login OK",
+                user, 
+                accessToken
+            })
 
-        }).send({user, token})
-
-        // res.status(200).json({
-        //     message: "Inicio de sesion correcto"
-        // })
     } catch (error) {
         console.error(error);
         return res.status(500).json({
@@ -112,20 +145,29 @@ const loginUser = async (req, res) => {
 
 const enterProtected = async (req, res) => {
 
-    const token = req.cookies.access_token;
-
-    if(!token) res.status(403).json({
-        message: "Acceso no autorizado"
-    })
-    // TODO: si el usuario está en sesion, renderizar protected.ejs
-    // res.render('protected', {email: "asdasd"}) 
-    try {
-        const data = jwt.verify(token, process.env.JWT_SECRET);
-        res.render('protected', data)
-    } catch (error) {
-        
-    }
-
+    const { user } = req.session;
+    if (user == null) return res.status(400).json({ message: "Acceso no autorizado" })
+    else res.render('protected', user)
 }
 
-export { getAll, registerUser, loginUser, enterProtected }
+const logoutUser = async (req, res) => {
+    const refreshToken = req.cookies.refresh_token;
+
+    if (refreshToken) {
+        await dbConnection.query(
+            `DELETE FROM refresh_tokens WHERE token = ? `,
+            [refreshToken]
+        )
+    }
+
+    res
+        .clearCookie('access_token')
+        .clearCookie('refresh_token')
+        .json({ message: 'logout successful'})
+
+
+    // res.clearCookie('access_token')
+    //     .json({ message: 'logout successful' })
+}
+
+export { getAll, registerUser, loginUser, enterProtected, logoutUser }
