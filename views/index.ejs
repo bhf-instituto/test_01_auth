@@ -17,8 +17,20 @@
                 <h2>Hola <%= email %>!</h2>
                 <p> Estas en el panel de administración</p>
                 <button id="close-session">Cerrar seseión</button>
+
+
+                <div style="display:flex; flex-direction:column; width: 10rem;">
+                    <h2>crear coleccion</h2>
+                    <label for="collection-name">nombre de la colección</label>
+                    <input type="text" name="collection-name" id="collection-name">
+
+                    <button id="create-collection">Crear colección</button>
+
+                </div>
+
             </div>
             <% } %>
+
 
                 <% if (typeof email==='undefined' ) { %>
                     <div class="form-container">
@@ -70,35 +82,38 @@
         const registerForm = $('#register-form');
         const registerSpan = $('#register-form span');
 
+        const createCollectionButton = $('#create-collection')
+
         const logoutButton = $('#close-session');
+
 
         loginForm?.addEventListener('submit', e => {
             e.preventDefault();
 
             const email = $('#login-email').value;
-            const password = $('#login-password').value;        
+            const password = $('#login-password').value;
 
-        fetch('/user/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email, password })
-        })
-            .then(res => {
-                if (res.ok) {
-                    loginSpan.innerText = "Sesión iniciada... entrando..."
-                    loginSpan.style.color = 'green'
-
-                    setTimeout(() => {
-                        window.location.href = '/user/protected'
-                    }, 1000)
-                } else {
-                    loginSpan.innerText = "Error al iniciar sesión"
-                    loginSpan.style.color = 'red'
-
-                }
+            fetch('/user/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
             })
+                .then(res => {
+                    if (res.ok) {
+                        loginSpan.innerText = "Sesión iniciada... entrando..."
+                        loginSpan.style.color = 'green'
+
+                        setTimeout(() => {
+                            window.location.href = '/user/getAll'
+                        }, 1000)
+                    } else {
+                        loginSpan.innerText = "Error al iniciar sesión"
+                        loginSpan.style.color = 'red'
+
+                    }
+                })
         })
 
         registerForm?.addEventListener('submit', e => {
@@ -109,10 +124,9 @@
             const confirmPassword = $('#register-confirm-password').value;
 
             if (password !== confirmPassword) {
-                alert("Users do not match");
+                alert("passwords do not match");
                 return;
             }
-
 
             fetch('/user/register', {
                 method: 'POST',
@@ -121,7 +135,9 @@
                 },
                 body: JSON.stringify({ email, password })
             })
+
                 .then(res => {
+
                     if (res.ok) {
                         registerSpan.innerText = "Sesión registrado... entrando..."
                         registerSpan.style.color = 'green'
@@ -144,6 +160,24 @@
                 headers: {
                     'Content-Type': 'application/json'
                 }
+            })
+                .then(res => {
+                    window.location.href = '/';
+                })
+        })
+
+        createCollectionButton?.addEventListener('click', e => {
+            e.preventDefault();
+
+            const collectionName = $('#collection-name').value;
+
+
+            fetch('/user/createcollection', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body : JSON.stringify({collectionName})
             })
                 .then(res => {
                     window.location.href = '/';

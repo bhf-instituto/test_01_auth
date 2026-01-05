@@ -1,16 +1,17 @@
 import express from 'express';
-import userRouter from './routes/user.route.js'
-import dbConnection from './config/connectionMySQL.js'
+import healthRouter from './routes/health.route.js'
+import authRouter from './routes/auth.route.js'
+import groupRouter from './routes/group.route.js'
 import cookieParser from 'cookie-parser';
 import getIndex from './controllers/index.controller.js'
 import checkToken from './middlewares/checktoken.middleware.js'
-import checkDBStatus from './utils/checkDDBStatus.util.js';
+
 
 const app = express();
 
 
 // le decimos que motor de vista queremos que use, esto es para mostrar html
-app.set('view engine', 'ejs');
+// app.set('view engine', 'ejs');
 
 // - .json() parsea las request, osea las convierte en json porque 
 // express no toma el req.body como json. 
@@ -23,8 +24,9 @@ app.use(checkToken)
 
 app.get('/', getIndex)
 
-app.get("/health/db", checkDBStatus);
 
-app.use('/user', userRouter)
+app.use("/health", healthRouter);
+app.use('/auth', authRouter)
+app.use('/groups', groupRouter)
 
 export default app;
