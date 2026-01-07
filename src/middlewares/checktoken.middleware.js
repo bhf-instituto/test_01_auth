@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import dbConnection from '../config/connectionMySQL.js'
 
 const checkToken = async (req, res, next) => {
-    req.session = { user: null };
+    req.user = null;
 
     const accessToken = req.cookies.access_token;
     const refreshToken = req.cookies.refresh_token;
@@ -11,12 +11,11 @@ const checkToken = async (req, res, next) => {
     if (accessToken) {
 
         try {
-
-         console.log("→ → →", data)
-
             const data = jwt.verify(accessToken, process.env.JWT_SECRET);
-            req.session.user = data;
-
+            req.user = {
+                id_user : data.id_user,
+                email : data.email
+            }; 
             return next();
         } catch {}
     }
@@ -28,6 +27,7 @@ const checkToken = async (req, res, next) => {
 
     // si hay refreshToken, intentamos validarlo. 
     try {
+        // console.log("aca")
         const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 
         const [rows] = await dbConnection.query(
@@ -45,7 +45,8 @@ const checkToken = async (req, res, next) => {
 
         const newAccessToken = jwt.sign(
             {
-                userId: payload.id_user
+                id_user: payload.id_user,
+                email : payload.email
             },
             process.env.JWT_SECRET,
             { expiresIn: '15m' }
@@ -58,15 +59,16 @@ const checkToken = async (req, res, next) => {
             maxAge: 1000 * 60 * 15
         });
 
-
-
-        req.session.user = payload;
+        req.user = {
+            id_user : payload.id_user,
+            email : payload.email
+        };
 
         return next();
 
 
     } catch (error) {
-        console.log("error al verificar el refresh token o crear el nuevo access_token")
+        console.log("error al verificar el refresh token o crear el nuevo access_token", error)
         return next();
     }
 

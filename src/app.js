@@ -2,6 +2,7 @@ import express from 'express';
 import healthRouter from './routes/health.route.js'
 import authRouter from './routes/auth.route.js'
 import groupRouter from './routes/group.route.js'
+import inviteRouter from './routes/invite.route.js'
 import cookieParser from 'cookie-parser';
 import getIndex from './controllers/index.controller.js'
 import checkToken from './middlewares/checktoken.middleware.js'
@@ -28,5 +29,7 @@ app.get('/', getIndex)
 app.use("/health", healthRouter);
 app.use('/auth', authRouter)
 app.use('/groups', groupRouter)
+app.use('/invite', inviteRouter)
+
 
 export default app;

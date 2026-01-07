@@ -1,8 +1,7 @@
 import dbCollection from '../config/connectionMySQL.js';
 
 export const createGroup = async (req, res) => {
-
-    if (!req.session.user) {
+    if (!req.user) {
         return res.status(401).json({
             ok: false,
             data: {
@@ -12,9 +11,8 @@ export const createGroup = async (req, res) => {
     }
 
     const { name } = req.body;
-    const userId = req.session.user.userId;
 
-    // console.log("→ → → ", name, userId)
+    const userId = req.user.id_user;
 
     if (!name || !name.trim()) {
         return res.status(400).json({
@@ -54,20 +52,21 @@ export const createGroup = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             ok: false,
-            error: 'Error al crear el grupo'
+            error: 'Error al crear el grupo',
+            err: error
         });
     }
 };
 
 export const getMyGroups = async (req, res) => {
-    if (!req.session.user) return res.json({
+    if (!req.user) return res.json({
         ok: false,
         data: {
             message: "not auth"
         }
     })
 
-    const userId = req.session.user.userId;
+    const userId = req.user.id_user;
 
     try {
         const [groups] = await dbCollection.query(
@@ -108,7 +107,7 @@ export const getMyGroups = async (req, res) => {
 }
 
 export const getMyExpensesFromGroup = async (req, res) => {
-    if (!req.session.user) return res.json({
+    if (!req.user) return res.json({
         ok: false,
         data: {
             message: "invalid session"
@@ -116,7 +115,7 @@ export const getMyExpensesFromGroup = async (req, res) => {
     })
 
     const groupId = req.params.id;
-    const userId = req.session.user.userId;
+    const userId = req.user.id_user;
 
     try {
         const [expenses] = await dbCollection.query(
@@ -149,7 +148,7 @@ export const getMyExpensesFromGroup = async (req, res) => {
 }
 
 export const getExpensesFromGroup = async (req, res) => {
-    if (!req.session.user) return res.json({
+    if (!req.user) return res.json({
         ok: false,
         data: {
             message: "invalid session"
@@ -157,7 +156,7 @@ export const getExpensesFromGroup = async (req, res) => {
     })
 
     const groupId = req.params.id;
-    const userId = req.session.user.userId;
+    const userId = req.user.id_user;
 
     try {
         const [expenses] = await dbCollection.query(

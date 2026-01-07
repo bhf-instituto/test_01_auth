@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { me } from '../controllers/auth.controller.js'
-import checkDBStatus from '../utils/checkDDBStatus.util.js';
+import { meStatus } from '../utils/meStatus.util.js'
+import { dbStatus } from '../utils/dbStatus.util.js'
 
 const router = Router();
-router.get('/me', me);
-router.get('/db', checkDBStatus)
+router.get('/me', meStatus);
+router.get('/db', dbStatus)
 
 export default router;
 

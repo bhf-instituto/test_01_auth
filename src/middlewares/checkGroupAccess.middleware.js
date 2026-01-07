@@ -1,14 +1,14 @@
 import dbConnection from '../config/connectionMySQL.js'
 
 const checkGroupAccess = async (req, res, next) => {
-    if (!req.session.user) return res.json({
+    if (!req.user) return res.json({
         ok: false,
         data: {
             message: "not auth"
         }
     })
 
-    const userId = req.session.user.userId;
+    const userId = req.user.id_user;
     const groupId = req.params.id;
 
     try {

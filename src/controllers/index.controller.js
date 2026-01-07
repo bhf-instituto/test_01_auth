@@ -1,7 +1,14 @@
 const getIndex = (req, res) => {
-// console.log(req)
     const { user } = req.session;
-    res.render('index', user)
+
+    return res.status(200).json({
+        ok: true, 
+        data: {
+            user : {
+                id_user : user.id_user
+            }
+        }
+    })
 }
 
 export default getIndex;

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { registerUser, loginUser, logoutUser } from '../controllers/user.controller.js'
+import { registerUser, loginUser, logoutUser } from '../controllers/auth.controller.js'
 // import { me } from '../controllers/auth.controller.js'
 // esto es para el front
 // import refreshAccessToken from '../controllers/refreshAccessToken.controller.js';
