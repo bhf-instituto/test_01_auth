@@ -1,5 +1,15 @@
 const getIndex = (req, res) => {
-    const { user } = req.session;
+    
+    if (!req.user) {
+        return res.status(200).json({
+            ok: false,
+            data: {
+                message: "no hay usuario"
+            }
+        });
+    }
+
+    const { user } = req;
 
     return res.status(200).json({
         ok: true, 
